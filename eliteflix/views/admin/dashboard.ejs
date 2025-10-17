@@ -1,0 +1,18 @@
+<% layout('layout') %>
+<div class="max-w-7xl mx-auto px-4 py-8">
+  <h1 class="text-2xl font-bold mb-6">Panel de Administración</h1>
+  <div class="grid sm:grid-cols-3 gap-4">
+    <div class="card p-4">
+      <div class="text-sm text-gray-400">Usuarios</div>
+      <div class="text-3xl font-extrabold"><%= stats.users %></div>
+    </div>
+    <div class="card p-4">
+      <div class="text-sm text-gray-400">Ventas (centavos)</div>
+      <div class="text-3xl font-extrabold"><%= stats.sales %></div>
+    </div>
+    <div class="card p-4">
+      <div class="text-sm text-gray-400">Órdenes</div>
+      <div class="text-3xl font-extrabold"><%= stats.orders %></div>
+    </div>
+  </div>
+</div>

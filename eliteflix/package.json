@@ -1,0 +1,32 @@
+{
+  "name": "eliteflix",
+  "version": "1.0.1",
+  "description": "Éliteflix - plataforma estilo streaming con Express + EJS + Tailwind",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "build:css": "tailwindcss -i ./public/css/tailwind.css -o ./public/css/output.css",
+    "dev:css": "tailwindcss -i ./public/css/tailwind.css -o ./public/css/output.css --watch",
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": "20.x"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^10.0.0",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "express-session": "^1.17.3",
+    "helmet": "^7.0.0",
+    "morgan": "^1.10.0",
+    "sanitize-html": "^2.13.0",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.13"
+  }
+}

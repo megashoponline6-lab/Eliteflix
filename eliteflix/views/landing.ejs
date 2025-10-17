@@ -1,0 +1,42 @@
+<% layout('layout') %>
+<section class="relative">
+  <div class="max-w-7xl mx-auto px-4 py-16 md:py-24">
+    <div class="grid md:grid-cols-2 gap-10 items-center">
+      <div>
+        <h1 class="text-4xl md:text-5xl font-extrabold leading-tight">
+          Todo tu entretenimiento en un solo lugar.
+        </h1>
+        <p class="mt-4 text-gray-300">
+          Series, películas y música con planes flexibles. Diseño oscuro, rápido y moderno.
+        </p>
+        <div class="mt-6 flex gap-3">
+          <a href="/catalogo" class="btn-primary">Ver catálogo</a>
+          <a href="/admin/login" class="px-5 py-2 rounded bg-white/10 hover:bg-white/20 font-semibold">Admin</a>
+        </div>
+      </div>
+      <div class="card p-6">
+        <div class="grid grid-cols-3 sm:grid-cols-4 gap-4">
+          <% (logos || []).forEach(l => { %>
+            <div class="aspect-square rounded-lg overflow-hidden bg-white/5 border border-white/10">
+              <img src="<%= l.logo_url %>" alt="<%= l.name %>" class="w-full h-full object-contain p-3">
+            </div>
+          <% }) %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-7xl mx_auto px-4 pb-16">
+    <h2 class="text-xl font-bold mb-4">Tendencias</h2>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-4">
+      <% (logos || []).forEach(l => { %>
+        <a href="/catalogo" class="group relative rounded-lg overflow-hidden border border-white/10 bg-white/5">
+          <img src="<%= l.logo_url %>" alt="<%= l.name %>" class="w-full h-40 object-contain p-4 transition-transform duration-300 group-hover:scale-105">
+          <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2 text-xs">
+            <span class="opacity-90"><%= l.name %></span>
+          </div>
+        </a>
+      <% }) %>
+    </div>
+  </div>
+</section>
