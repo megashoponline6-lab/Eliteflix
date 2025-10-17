@@ -15,7 +15,7 @@ import ejs from 'ejs';
 // 📌 Configuración base
 // =============================
 const __filename = fileURLToPath(import.meta.url);
-const _dirname = path.dirname(_filename); // ✅ corregido _dirname
+const _dirname = path.dirname(_filename); // ✅ CORREGIDO
 const app = express();
 
 // Seguridad y middlewares
@@ -76,8 +76,14 @@ db.exec(`
   );
 `);
 
-// Migraciones suaves ✅ (agregando comillas)
-const tryAlter = (sql) => { try { db.prepare(sql).run(); } catch { /* ya existe */ } };
+// Migraciones suaves ✅
+const tryAlter = (sql) => { 
+  try { 
+    db.prepare(sql).run(); 
+  } catch { 
+    // ya existe 
+  } 
+};
 
 tryAlter(ALTER TABLE users ADD COLUMN first_name TEXT;);
 tryAlter(ALTER TABLE users ADD COLUMN last_name TEXT;);
@@ -106,9 +112,9 @@ db.exec(`
 const pesosToCents = (n) => Math.round(Number(n) * 100);
 const centsToPesos = (c) => (Number(c || 0) / 100).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 const safe = (t) => sanitizeHtml(t || '', { allowedTags: [], allowedAttributes: {} });
-const logo = (domain) => https://logo.clearbit.com/${domain}; // ✅ template string agregado
+const logo = (domain) => https://logo.clearbit.com/${domain}; // ✅ Template string arreglada
 
-// Semilla de productos ✅ comillas corregidas
+// Semilla de productos
 const seedProducts = () => {
   const count = db.prepare('SELECT COUNT(*) as c FROM products').get().c;
   if (count > 0) return;
@@ -126,7 +132,7 @@ const seedProducts = () => {
   `);
   for (const it of items) {
     const [name, price, period, category, logo_url] = it;
-    const plantilla = Cuenta: ${name} | Periodo: ${period} | Usuario: {{email}} | Contraseña: (se enviará por correo o en esta pantalla);
+    const plantilla = Cuenta: ${name} | Periodo: ${period} | Usuario: {{email}} | Contraseña: (se enviará por correo o en esta pantalla); // ✅ backticks
     ins.run(name, pesosToCents(price), period, category, logo_url, plantilla);
   }
 };
@@ -199,7 +205,14 @@ app.post('/inicio', (req, res) => {
   if (!u) return res.status(401).send('<script>alert("Usuario no encontrado");window.location="/inicio"</script>');
   const ok = bcrypt.compareSync(password, u.password_hash);
   if (!ok) return res.status(401).send('<script>alert("Credenciales inválidas");window.location="/inicio"</script>');
-  req.session.client = { id: u.id, email: u.email, first_name: u.first_name, last_name: u.last_name, country: u.country, balance_cents: u.balance_cents };
+  req.session.client = { 
+    id: u.id, 
+    email: u.email, 
+    first_name: u.first_name, 
+    last_name: u.last_name, 
+    country: u.country, 
+    balance_cents: u.balance_cents 
+  };
   res.redirect('/perfil');
 });
 
@@ -234,7 +247,7 @@ app.get('/perfil', requireClient, (req, res) => {
   });
 });
 
-// Soporte ✅ comillas agregadas
+// Soporte ✅
 app.post('/soporte', requireClient, (req, res) => {
   const { subject, message } = req.body;
   if (!subject || !message) {
@@ -268,5 +281,5 @@ app.use((req, res) => {
 // =============================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(✅ Éliteflix listo en el puerto ${PORT}); // ✅ corregido
+  console.log(✅ Éliteflix listo en el puerto ${PORT}); // ✅ CORREGIDO
 });
