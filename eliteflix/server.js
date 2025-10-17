@@ -91,7 +91,8 @@ const seedProducts = () => {
   `);
   for (const it of items) {
     const [name, price, period, category, logo_url] = it;
-    const plantilla = \`Cuenta: \${name} | Periodo: \${period} | Usuario: {{email}} | Contraseña: (se enviará por correo o en esta pantalla)\`;
+    // ✅ CORREGIDA esta línea
+    const plantilla = `Cuenta: ${name} | Periodo: ${period} | Usuario: {{email}} | Contraseña: (se enviará por correo o en esta pantalla)`;
     ins.run(name, pesosToCents(price), period, category, logo_url, plantilla);
   }
 };
