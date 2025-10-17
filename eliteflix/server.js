@@ -15,7 +15,7 @@ import ejs from 'ejs';
 // 📌 Configuración base
 // =============================
 const __filename = fileURLToPath(import.meta.url);
-const _dirname = path.dirname(_filename); // ✅ corregido _dirname
+const __dirname = path.dirname(__filename); // ✅ corregido
 const app = express();
 
 // Seguridad y middlewares
@@ -76,16 +76,16 @@ db.exec(`
   );
 `);
 
-// Migraciones suaves ✅ (agregando comillas)
+// Migraciones suaves
 const tryAlter = (sql) => { try { db.prepare(sql).run(); } catch { /* ya existe */ } };
 
-tryAlter(ALTER TABLE users ADD COLUMN first_name TEXT;);
-tryAlter(ALTER TABLE users ADD COLUMN last_name TEXT;);
-tryAlter(ALTER TABLE users ADD COLUMN country TEXT;);
-tryAlter(ALTER TABLE users ADD COLUMN balance_cents INTEGER DEFAULT 0;);
+tryAlter(`ALTER TABLE users ADD COLUMN first_name TEXT;`);
+tryAlter(`ALTER TABLE users ADD COLUMN last_name TEXT;`);
+tryAlter(`ALTER TABLE users ADD COLUMN country TEXT;`);
+tryAlter(`ALTER TABLE users ADD COLUMN balance_cents INTEGER DEFAULT 0;`);
 
-tryAlter(ALTER TABLE orders ADD COLUMN start_date TEXT;);
-tryAlter(ALTER TABLE orders ADD COLUMN end_date TEXT;);
+tryAlter(`ALTER TABLE orders ADD COLUMN start_date TEXT;`);
+tryAlter(`ALTER TABLE orders ADD COLUMN end_date TEXT;`);
 
 // Tabla de soporte
 db.exec(`
@@ -106,9 +106,9 @@ db.exec(`
 const pesosToCents = (n) => Math.round(Number(n) * 100);
 const centsToPesos = (c) => (Number(c || 0) / 100).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 const safe = (t) => sanitizeHtml(t || '', { allowedTags: [], allowedAttributes: {} });
-const logo = (domain) => https://logo.clearbit.com/${domain}; // ✅ template string agregado
+const logo = (domain) => `https://logo.clearbit.com/${domain}`; // ✅ template string correcto
 
-// Semilla de productos ✅ comillas corregidas
+// Semilla de productos
 const seedProducts = () => {
   const count = db.prepare('SELECT COUNT(*) as c FROM products').get().c;
   if (count > 0) return;
@@ -126,7 +126,7 @@ const seedProducts = () => {
   `);
   for (const it of items) {
     const [name, price, period, category, logo_url] = it;
-    const plantilla = Cuenta: ${name} | Periodo: ${period} | Usuario: {{email}} | Contraseña: (se enviará por correo o en esta pantalla);
+    const plantilla = `Cuenta: ${name} | Periodo: ${period} | Usuario: {{email}} | Contraseña: (se enviará por correo o en esta pantalla)`;
     ins.run(name, pesosToCents(price), period, category, logo_url, plantilla);
   }
 };
@@ -234,13 +234,13 @@ app.get('/perfil', requireClient, (req, res) => {
   });
 });
 
-// Soporte ✅ comillas agregadas
+// Soporte
 app.post('/soporte', requireClient, (req, res) => {
   const { subject, message } = req.body;
   if (!subject || !message) {
     return res.status(400).send('<script>alert("Completa asunto y mensaje");window.location="/perfil"</script>');
   }
-  db.prepare(INSERT INTO support_tickets(user_id,subject,message) VALUES(?,?,?))
+  db.prepare(`INSERT INTO support_tickets(user_id,subject,message) VALUES(?,?,?)`)
     .run(req.session.client.id, safe(subject), safe(message));
   res.redirect('/perfil');
 });
@@ -268,5 +268,5 @@ app.use((req, res) => {
 // =============================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(✅ Éliteflix listo en el puerto ${PORT}); // ✅ corregido
+  console.log(`✅ Éliteflix listo en el puerto ${PORT}`);
 });
