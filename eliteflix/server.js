@@ -15,19 +15,20 @@ import ejs from 'ejs';
 // 📌 Configuración base
 // =============================
 const __filename = fileURLToPath(import.meta.url);
-const _dirname = path.dirname(_filename); // ✅ CORREGIDO
+const _dirname = path.dirname(_filename);
 const app = express();
 
-// Seguridad y middlewares
+// Middlewares de seguridad y parsing
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(morgan('dev'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Sesión
+// Sesiones
 app.use(session({
   secret: process.env.SESSION_SECRET || 'eliteflix-secret',
   resave: false,
@@ -39,6 +40,7 @@ app.use(session({
 // =============================
 const dataDir = path.join(__dirname, 'data');
 if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir);
+
 const db = new Database(path.join(dataDir, 'eliteflix.db'));
 
 // Tablas base
@@ -51,6 +53,7 @@ db.exec(`
     points INTEGER DEFAULT 0,
     created_at TEXT DEFAULT (datetime('now'))
   );
+
   CREATE TABLE IF NOT EXISTS products(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT,
@@ -61,6 +64,7 @@ db.exec(`
     active INTEGER DEFAULT 1,
     details_template TEXT
   );
+
   CREATE TABLE IF NOT EXISTS orders(
     id TEXT PRIMARY KEY,
     user_id INTEGER,
@@ -76,13 +80,13 @@ db.exec(`
   );
 `);
 
-// Migraciones suaves ✅
-const tryAlter = (sql) => { 
-  try { 
-    db.prepare(sql).run(); 
-  } catch { 
-    // ya existe 
-  } 
+// Migraciones suaves (no explotan si ya existen)
+const tryAlter = (sql) => {
+  try {
+    db.prepare(sql).run();
+  } catch {
+    // columna ya existe, ignorar
+  }
 };
 
 tryAlter(ALTER TABLE users ADD COLUMN first_name TEXT;);
@@ -110,14 +114,20 @@ db.exec(`
 // 📌 Utilidades
 // =============================
 const pesosToCents = (n) => Math.round(Number(n) * 100);
-const centsToPesos = (c) => (Number(c || 0) / 100).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
-const safe = (t) => sanitizeHtml(t || '', { allowedTags: [], allowedAttributes: {} });
-const logo = (domain) => https://logo.clearbit.com/${domain}; // ✅ Template string arreglada
+const centsToPesos = (c) =>
+  (Number(c || 0) / 100).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 
-// Semilla de productos
+const safe = (t) => sanitizeHtml(t || '', { allowedTags: [], allowedAttributes: {} });
+
+const logo = (domain) => https://logo.clearbit.com/${domain};
+
+// =============================
+// 📌 Semilla de productos
+// =============================
 const seedProducts = () => {
   const count = db.prepare('SELECT COUNT(*) as c FROM products').get().c;
   if (count > 0) return;
+
   const items = [
     ['Netflix', 90, '1M', 'Streaming', logo('netflix.com')],
     ['Disney+', 85, '1M', 'Streaming', logo('disneyplus.com')],
@@ -126,13 +136,14 @@ const seedProducts = () => {
     ['Spotify', 70, '1M', 'Música', logo('spotify.com')],
     ['YouTube Premium', 75, '1M', 'Video', logo('youtube.com')],
   ];
+
   const ins = db.prepare(`
     INSERT INTO products(name,price_cents,period,category,logo_url,active,details_template)
     VALUES(?,?,?,?,?,1,?)
   `);
-  for (const it of items) {
-    const [name, price, period, category, logo_url] = it;
-    const plantilla = Cuenta: ${name} | Periodo: ${period} | Usuario: {{email}} | Contraseña: (se enviará por correo o en esta pantalla); // ✅ backticks
+
+  for (const [name, price, period, category, logo_url] of items) {
+    const plantilla = Cuenta: ${name} | Periodo: ${period} | Usuario: {{email}} | Contraseña: (se enviará por correo o en esta pantalla);
     ins.run(name, pesosToCents(price), period, category, logo_url, plantilla);
   }
 };
@@ -146,20 +157,25 @@ app.response.render = function (view, options = {}, cb) {
   options.layout = (name) => { options._layoutFile = name; };
   options.body = '';
   const self = this;
+
   ejs.renderFile(path.join(__dirname, 'views', view + '.ejs'), { ...options, centsToPesos }, (err, str) => {
     if (err) return originalRender.call(self, view, options, cb);
     if (options._layoutFile) {
       options.body = str;
-      return ejs.renderFile(path.join(__dirname, 'views', options._layoutFile + '.ejs'), { ...options, centsToPesos }, (e, str2) => {
-        if (e) return self.send(str);
-        return self.send(str2);
-      });
+      return ejs.renderFile(
+        path.join(__dirname, 'views', options._layoutFile + '.ejs'),
+        { ...options, centsToPesos },
+        (e, str2) => {
+          if (e) return self.send(str);
+          return self.send(str2);
+        }
+      );
     }
     return self.send(str);
   });
 };
 
-// Sesión disponible en vistas
+// Middleware global para sesión en vistas
 app.use((req, res, next) => {
   res.locals.session = req.session;
   next();
@@ -178,7 +194,9 @@ app.get('/registro', (req, res) => {
 app.post('/registro', (req, res) => {
   const { first_name, last_name, country, email, password } = req.body;
   if (!first_name || !last_name || !country || !email || !password) {
-    return res.status(400).send('<script>alert("Completa todos los campos");window.location="/registro"</script>');
+    return res
+      .status(400)
+      .send('<script>alert("Completa todos los campos");window.location="/registro"</script>');
   }
   const hash = bcrypt.hashSync(password, 10);
   try {
@@ -189,7 +207,9 @@ app.post('/registro', (req, res) => {
     return res.redirect('/inicio');
   } catch (e) {
     console.error(e);
-    return res.status(400).send('<script>alert("Ese correo ya existe o es inválido");window.location="/registro"</script>');
+    return res
+      .status(400)
+      .send('<script>alert("Ese correo ya existe o es inválido");window.location="/registro"</script>');
   }
 });
 
@@ -202,16 +222,24 @@ app.get('/inicio', (req, res) => {
 app.post('/inicio', (req, res) => {
   const { email, password } = req.body;
   const u = db.prepare('SELECT * FROM users WHERE email=? AND role="client"').get(safe(email));
-  if (!u) return res.status(401).send('<script>alert("Usuario no encontrado");window.location="/inicio"</script>');
+  if (!u) {
+    return res
+      .status(401)
+      .send('<script>alert("Usuario no encontrado");window.location="/inicio"</script>');
+  }
   const ok = bcrypt.compareSync(password, u.password_hash);
-  if (!ok) return res.status(401).send('<script>alert("Credenciales inválidas");window.location="/inicio"</script>');
-  req.session.client = { 
-    id: u.id, 
-    email: u.email, 
-    first_name: u.first_name, 
-    last_name: u.last_name, 
-    country: u.country, 
-    balance_cents: u.balance_cents 
+  if (!ok) {
+    return res
+      .status(401)
+      .send('<script>alert("Credenciales inválidas");window.location="/inicio"</script>');
+  }
+  req.session.client = {
+    id: u.id,
+    email: u.email,
+    first_name: u.first_name,
+    last_name: u.last_name,
+    country: u.country,
+    balance_cents: u.balance_cents,
   };
   res.redirect('/perfil');
 });
@@ -222,7 +250,7 @@ app.post('/salir', (req, res) => {
   res.redirect('/');
 });
 
-// Middleware
+// Middleware de autenticación
 const requireClient = (req, res, next) => {
   if (req.session?.client) return next();
   return res.redirect('/inicio');
@@ -243,15 +271,17 @@ app.get('/perfil', requireClient, (req, res) => {
     title: 'Mi perfil — Éliteflix',
     client,
     orders,
-    formatMoney: centsToPesos
+    formatMoney: centsToPesos,
   });
 });
 
-// Soporte ✅
+// Soporte
 app.post('/soporte', requireClient, (req, res) => {
   const { subject, message } = req.body;
   if (!subject || !message) {
-    return res.status(400).send('<script>alert("Completa asunto y mensaje");window.location="/perfil"</script>');
+    return res
+      .status(400)
+      .send('<script>alert("Completa asunto y mensaje");window.location="/perfil"</script>');
   }
   db.prepare(INSERT INTO support_tickets(user_id,subject,message) VALUES(?,?,?))
     .run(req.session.client.id, safe(subject), safe(message));
@@ -281,5 +311,5 @@ app.use((req, res) => {
 // =============================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(✅ Éliteflix listo en el puerto ${PORT}); // ✅ CORREGIDO
+  console.log(✅ Éliteflix listo en el puerto ${PORT});
 });
