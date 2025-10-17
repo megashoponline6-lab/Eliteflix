@@ -77,13 +77,15 @@ db.exec(`
 `);
 
 // Migraciones suaves ✅ (agregando comillas)
-const tryAlter = (sql) => { try { db.prepare(sql).run(); } catch { /* ya existe */ } };
-
+const tryAlter = (sql) => {
+  try {
+    db.prepare(sql).run();
+  } catch { /* ya existe */ }
+};
 tryAlter(ALTER TABLE users ADD COLUMN first_name TEXT;);
 tryAlter(ALTER TABLE users ADD COLUMN last_name TEXT;);
 tryAlter(ALTER TABLE users ADD COLUMN country TEXT;);
 tryAlter(ALTER TABLE users ADD COLUMN balance_cents INTEGER DEFAULT 0;);
-
 tryAlter(ALTER TABLE orders ADD COLUMN start_date TEXT;);
 tryAlter(ALTER TABLE orders ADD COLUMN end_date TEXT;);
 
@@ -162,7 +164,6 @@ app.use((req, res, next) => {
 // =============================
 // 📌 Rutas de Cliente
 // =============================
-
 // Registro
 app.get('/registro', (req, res) => {
   if (req.session?.client) return res.redirect('/perfil');
@@ -225,7 +226,6 @@ app.get('/perfil', requireClient, (req, res) => {
     WHERE o.user_id=?
     ORDER BY IFNULL(o.end_date, o.created_at) DESC
   `).all(client.id);
-
   res.render('client/profile', {
     title: 'Mi perfil — Éliteflix',
     client,
