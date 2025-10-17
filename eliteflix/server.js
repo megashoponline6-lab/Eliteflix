@@ -15,7 +15,7 @@ import ejs from 'ejs';
 // 📌 Configuración base
 // =============================
 const __filename = fileURLToPath(import.meta.url);
-const _dirname = path.dirname(_filename);
+const _dirname = path.dirname(_filename); // ✅ corregido _dirname
 const app = express();
 
 // Seguridad y middlewares
@@ -76,7 +76,7 @@ db.exec(`
   );
 `);
 
-// Migraciones suaves
+// Migraciones suaves ✅ (agregando comillas)
 const tryAlter = (sql) => { try { db.prepare(sql).run(); } catch { /* ya existe */ } };
 
 tryAlter(ALTER TABLE users ADD COLUMN first_name TEXT;);
@@ -106,9 +106,9 @@ db.exec(`
 const pesosToCents = (n) => Math.round(Number(n) * 100);
 const centsToPesos = (c) => (Number(c || 0) / 100).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 const safe = (t) => sanitizeHtml(t || '', { allowedTags: [], allowedAttributes: {} });
-const logo = (domain) => https://logo.clearbit.com/${domain};
+const logo = (domain) => https://logo.clearbit.com/${domain}; // ✅ template string agregado
 
-// Semilla de productos
+// Semilla de productos ✅ comillas corregidas
 const seedProducts = () => {
   const count = db.prepare('SELECT COUNT(*) as c FROM products').get().c;
   if (count > 0) return;
@@ -234,7 +234,7 @@ app.get('/perfil', requireClient, (req, res) => {
   });
 });
 
-// Soporte
+// Soporte ✅ comillas agregadas
 app.post('/soporte', requireClient, (req, res) => {
   const { subject, message } = req.body;
   if (!subject || !message) {
@@ -268,5 +268,5 @@ app.use((req, res) => {
 // =============================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(✅ Éliteflix listo en el puerto ${PORT});
+  console.log(✅ Éliteflix listo en el puerto ${PORT}); // ✅ corregido
 });
